@@ -1,0 +1,30 @@
+# Real trip footage and everything derived from it - never publish
+real_cam/
+work/
+work_*/
+trip_samples/
+_gap_test_clips/
+_r1_clips/
+preview_*.png
+
+# Personal working context (see CLAUDE.md standing rule: gitignore always)
+CLAUDE.md
+
+# Real user config - config.example.ini is the tracked template
+config.ini
+
+# Generated road data - large, scope depends on your route.
+# Regenerate locally via the TIGER acquisition tool (see README).
+map_data/roads.geojson
+map_data/local_roads.geojson
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+*.swp

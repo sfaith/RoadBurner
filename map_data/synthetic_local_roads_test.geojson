@@ -1,0 +1,39 @@
+{
+  "type": "FeatureCollection",
+  "_comment": "Round 3 TEST FIXTURE ONLY - hand-built, NOT Census TIGER data. Two short synthetic streets near the recorded 080-082 GPS track's starting area (Arkadelphia, AR, ~34.180, -93.073) so nearest_road()/roads_per_second()/merge_road_matches() have something realistic-scale to match against in unit tests. Per the Round 2 precedent (synthetic_roads_test.geojson's fade/hysteresis paths), this fixture is NOT expected to visually change anything in a trip_samples render of clips 080-082, because that clip subset matches I-30 continuously (187/187 sec per CLAUDE.md) - there's no real unmatched-highway stretch for the local-road fallback to show up in. Coverage for the fallback logic itself is via tests/test_logic.py, not a rendered frame.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "Pine Street",
+        "route_type": "local"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-93.07350, 34.17850],
+          [-93.07330, 34.17950],
+          [-93.07310, 34.18050],
+          [-93.07290, 34.18150],
+          [-93.07270, 34.18250]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "Caddo Street",
+        "route_type": "local"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-93.08200, 34.16100],
+          [-93.08000, 34.16150],
+          [-93.07800, 34.16200],
+          [-93.07600, 34.16250]
+        ]
+      }
+    }
+  ]
+}
