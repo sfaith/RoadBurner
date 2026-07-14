@@ -1,3 +1,4 @@
 reverse_geocoder
 matplotlib
 Pillow
+pyshp  # tools/fetch_tiger_roads.py only (TIGER shapefile parsing)

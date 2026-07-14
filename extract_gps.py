@@ -21,6 +21,8 @@ Usage: python extract_gps.py [--config config.ini]
 """
 from __future__ import annotations
 
+__version__ = "0.1.0"
+
 import argparse
 import configparser
 import csv
@@ -190,17 +192,62 @@ def dedupe_labels(rows: list[tuple[float, str]], end_time: float) -> list[tuple[
     return [s for s in spans if s[2]]
 
 
-def geocode(points: list[GpsPoint]) -> dict[tuple[float, float], str]:
-    """Offline reverse geocode; returns {(lat,lon rounded 3dp): 'Town, ST'}."""
+def geocode(points: list[GpsPoint]) -> dict[tuple[float, float], dict[str, str]]:
+    """Offline reverse geocode; returns {(lat,lon rounded 3dp): raw result
+    dict} with reverse_geocoder's own keys, notably 'name', 'admin1', and
+    'cc' (ISO country code, e.g. 'US' or 'MX'). Returns the raw dict rather
+    than a pre-formatted string so resolve_town_labels() can filter/carry-
+    forward on 'cc' - see there for why (a border-adjacent US point can
+    resolve to a nearer foreign town in the offline dataset)."""
     import reverse_geocoder as rg  # deferred: slow import, big data file
     keys = sorted({(round(p.lat, 3), round(p.lon, 3)) for p in points if p.valid})
     if not keys:
         return {}
-    results = rg.search(keys, verbose=False)
-    out: dict[tuple[float, float], str] = {}
-    for key, res in zip(keys, results):
-        state = US_STATE_ABBR.get(res["admin1"], res["admin1"])
-        out[key] = f"{res['name']}|{state}"
+    # mode=1 forces single-threaded lookup (default mode=2 spawns a
+    # multiprocessing worker pool sized to CPU count; a burst of those
+    # workers each re-importing scipy/numpy can spike Windows' committed
+    # virtual memory past the pagefile-backed commit limit even with
+    # plenty of physical RAM free - see CLAUDE.md).
+    results = rg.search(keys, mode=1, verbose=False)
+    return dict(zip(keys, results))
+
+
+def resolve_town_labels(
+    raw_results: list[dict[str, str] | None],
+) -> list[tuple[str, str]]:
+    """Per-point (town, state) labels from raw geocode() lookups, given in
+    track order (one entry per GpsPoint, aligned 1:1).
+
+    - None (an invalid/no-fix GPS point) always yields ("", "") - unchanged
+      from the pre-fix behavior, and still what lets dedupe_labels() treat
+      it as a real span break (see Round 4 notes in CLAUDE.md).
+    - A lookup whose 'cc' is 'US' is a confident match: it's shown, and
+      becomes the new carry-forward value.
+    - A lookup whose 'cc' is anything else is discarded and the last
+      confident US match is repeated instead. This is the 2026-07-13 fix
+      for a real, confirmed artifact: the offline reverse_geocoder
+      package's nearest-neighbor search operates over a worldwide city
+      list, so a GPS point close to the US/Mexico border can resolve to
+      the nearer foreign town (e.g. real I-10 points in Fabens/Tornillo/
+      San Elizario, TX - solidly on US soil - resolved to "Praxedis
+      Guerrero, Chihuahua" because that Mexican town happened to be the
+      nearest indexed city) even though the vehicle never left the US.
+      Carrying forward (rather than blanking, which would falsely look
+      like a GPS-dark span) is correct here because the vehicle's actual
+      position is known and confidently in the US - only the reverse-geo
+      lookup itself was wrong.
+    """
+    out: list[tuple[str, str]] = []
+    last: tuple[str, str] = ("", "")
+    for res in raw_results:
+        if res is None:
+            out.append(("", ""))
+        elif res.get("cc") == "US":
+            state = US_STATE_ABBR.get(res["admin1"], res["admin1"])
+            last = (res["name"], state)
+            out.append(last)
+        else:
+            out.append(last)
     return out
 
 
@@ -296,7 +343,14 @@ def main() -> int:
     (work / "duration_sec").write_text(f"{running:.3f}\n", encoding="utf-8")
 
     print("Reverse geocoding (offline)...")
-    towns = geocode(all_points)
+    raw_geocode = geocode(all_points)
+    # resolve_town_labels() carries forward the last confident US match
+    # whenever a valid point's nearest reverse-geo match is non-US (see its
+    # docstring - fixes a real Mexico-border mislabel, confirmed 2026-07-13).
+    resolved_labels = resolve_town_labels([
+        raw_geocode.get((round(p.lat, 3), round(p.lon, 3))) if p.valid else None
+        for p in all_points
+    ])
 
     fieldnames = ["clip", "sec_in_clip", "global_sec", "timestamp_utc",
                   "valid", "lat", "lon", "speed_mph", "heading", "town", "state"]
@@ -304,10 +358,8 @@ def main() -> int:
     with open(work / "track.csv", "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=fieldnames)
         writer.writeheader()
-        for p in all_points:
+        for p, (town, state) in zip(all_points, resolved_labels):
             gsec = offsets[p.clip] + p.sec_in_clip
-            town_state = towns.get((round(p.lat, 3), round(p.lon, 3)), "|") if p.valid else "|"
-            town, state = town_state.split("|", 1)
             writer.writerow({
                 "clip": p.clip, "sec_in_clip": p.sec_in_clip,
                 "global_sec": round(gsec, 3), "timestamp_utc": p.timestamp_utc,

@@ -1,11 +1,6 @@
-# Real trip footage and everything derived from it - never publish
+# Real trip footage and its production output - never publish
 real_cam/
 work/
-work_*/
-trip_samples/
-_gap_test_clips/
-_r1_clips/
-preview_*.png
 
 # Personal working context (see CLAUDE.md standing rule: gitignore always)
 CLAUDE.md
@@ -18,11 +13,26 @@ config.ini
 map_data/roads.geojson
 map_data/local_roads.geojson
 
+# Sandbox / test scaffolding (test clips, intermediate files, rendered
+# test output, preview frames). Only the example *.ini configs in here are
+# tracked, as a reference for the sandbox-config pattern.
+sandbox/*
+!sandbox/*.ini
+
 # Python
 __pycache__/
 *.pyc
 .venv/
 venv/
+
+# Safety net: render output/logs/scratch text files should never sit at
+# the repo root - anchored with a leading slash so it only catches root-
+# level stray files (like the finished trip_overlay*.mp4 renders, or a
+# _fulltrip_render_out.txt left behind by a command run from the wrong
+# directory), not legitimate .txt/.mp4 files nested in subfolders.
+/*.txt
+/*.log
+/*.mp4
 
 # OS/editor cruft
 .DS_Store
