@@ -47,6 +47,11 @@ and shows a configurable "no GPS lock" indicator instead of guessing.
 
 ## Requirements
 
+- Developed and tested against 1920x1080 dashcam footage. Overlay
+  elements (maps, fonts, shields, info-strip) are currently sized in
+  absolute pixels tuned for that resolution, not proportionally - higher-
+  resolution (4K+) camera support is planned but not yet built (see
+  CHANGELOG.md's Unreleased section).
 - Python 3.10+
 - [ffmpeg / ffprobe](https://ffmpeg.org/) on your `PATH`
 - Python packages: `pip install -r requirements.txt`

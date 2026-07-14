@@ -23,6 +23,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (ffmpeg uses every available core); set a lower number if you'd rather
   a long render leave the rest of your machine usable in the meantime.
 
+### Planned (not yet built)
+- Day-title card fine-tuning - the feature itself is built and verified
+  on real footage (see `[day_title]` under 0.1.0 below), but it's left
+  `enabled = false` in `config.ini` pending a closer look at timing/
+  layout before it's part of a real production render.
+- Proportional (percentage-of-source-width) overlay sizing, to support
+  future 4K+ dashcam footage. Every overlay element (maps, fonts,
+  shields, info-strip) is currently sized in absolute pixels against a
+  hardcoded 1920px reference width - fine for this project's own 1080p
+  footage, but wouldn't scale cleanly to a higher-resolution camera.
+- A distinct shield graphic per concurrent highway designation (e.g. a
+  second shield for US-70 alongside I-10's), instead of one shield plus
+  widened text - `show_concurrent_designations` already covers the text
+  side of this.
+
 ## [0.1.0] - 2026-07-14
 
 ### Added
