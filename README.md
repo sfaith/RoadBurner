@@ -104,7 +104,11 @@ python render_overlay.py --config config.ini
 ```
 
 Set `preview_scale` under `[video]` (e.g. `960x540`) for fast low-res test
-renders before committing to a full-resolution run.
+renders before committing to a full-resolution run. Set `threads` under
+`[video]` to cap how many cores ffmpeg's encode step uses - leave it
+blank for the fastest render (all cores), or set a number below your
+CPU's core count if you'd rather a long render leave your machine usable
+in the meantime.
 
 ## Road names (optional)
 

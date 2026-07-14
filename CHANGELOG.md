@@ -18,6 +18,10 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   the `clip_folder` path you enter, instead of only checking that the
   folder exists - a wrong or empty path shows up immediately instead of
   failing later in `extract_gps.py`.
+- `[video] threads` - optional cap on ffmpeg's encoder thread count via
+  its own portable `-threads` flag. Blank (default) is unchanged behavior
+  (ffmpeg uses every available core); set a lower number if you'd rather
+  a long render leave the rest of your machine usable in the meantime.
 
 ## [0.1.0] - 2026-07-14
 

@@ -2785,12 +2785,32 @@ def main() -> int:
         filters.append(f"{tail}scale={m.group(1)}:{m.group(2)}[vscaled]")
         tail = "[vscaled]"
 
+    # Caps ffmpeg's own encoder thread count via its portable -threads flag,
+    # rather than OS-level process affinity/priority (which would need
+    # separate Windows/Linux/Mac-specific code). Blank/unset (the default)
+    # means ffmpeg picks its own thread count - unchanged from before this
+    # option existed. Some users would rather a render take longer and
+    # leave the rest of their cores free for other work than have ffmpeg
+    # claim every core.
+    threads = cfg.get("video", "threads", fallback="").strip()
+    if threads:
+        if not threads.isdigit() or int(threads) < 1:
+            print(f"ERROR: [video] threads must be a positive integer, "
+                  f"got {threads!r}", file=sys.stderr)
+            return 1
+        print(f"Encoding with {threads} thread(s) ([video] threads) - leave "
+              f"blank to let ffmpeg use all available cores")
+    else:
+        print("Encoding with ffmpeg's default thread count (all available cores)")
+
     cmd = ["ffmpeg", "-y"] + inputs
     cmd += ["-filter_complex", ";".join(filters), "-map", tail,
             "-an", "-c:v", "libx264",
             "-crf", cfg.get("video", "crf", fallback="20"),
-            "-preset", cfg.get("video", "preset", fallback="medium"),
-            "-pix_fmt", "yuv420p", output]
+            "-preset", cfg.get("video", "preset", fallback="medium")]
+    if threads:
+        cmd += ["-threads", threads]
+    cmd += ["-pix_fmt", "yuv420p", output]
 
     if args.dry_run:
         print("DRY RUN - ffmpeg command:")
