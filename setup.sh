@@ -207,6 +207,16 @@ if [[ "${WRITE_CLIP_FOLDER}" == "true" ]]; then
 
   if [[ ! -d "${CLIP_FOLDER}" ]]; then
     warn "That folder doesn't exist yet — copy your dashcam clips there before running extract_gps.py."
+  else
+    # Non-recursive, case-insensitive .MP4 count - mirrors exactly what
+    # extract_gps.py itself will scan, so a typo'd path or an empty/wrong
+    # folder shows up here instead of failing later.
+    CLIP_COUNT="$(find "${CLIP_FOLDER}" -maxdepth 1 -iname '*.mp4' -type f 2>/dev/null | wc -l | tr -d ' ')"
+    if [[ "${CLIP_COUNT}" -gt 0 ]]; then
+      success "Found ${CLIP_COUNT} .MP4 file(s) in that folder."
+    else
+      warn "No .MP4 files found directly in that folder. extract_gps.py doesn't look in subfolders — check the path and that your clips are copied there."
+    fi
   fi
 fi
 

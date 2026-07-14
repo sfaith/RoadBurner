@@ -80,6 +80,22 @@ Either way, edit `config.ini` - never the `.py` scripts - to point
 `config.ini` is gitignored so your personal paths and settings never get
 committed.
 
+## Selecting footage
+
+`clip_folder` can point anywhere - a subfolder you create inside the
+clone (e.g. `clips/2024-summer-trip`), an absolute path elsewhere on
+disk, or a network share / mapped drive (`\\nas\dashcam\2024TripFootage`
+or `Z:\Dashcam\2024TripFootage`). `extract_gps.py` scans that one folder
+non-recursively for every `.MP4`/`.mp4` in it - there's no date-range or
+include/exclude filtering, and it won't look into subfolders.
+
+In other words: RoadBurner doesn't pick clips for you. If your card or
+share has footage from more than one trip mixed together, organize the
+clips you want into their own folder first, then point `clip_folder`
+there. `setup.ps1`/`setup.sh` will count and report how many `.MP4`
+files it finds at the path you give it, so a typo'd or empty folder
+shows up immediately instead of failing later in `extract_gps.py`.
+
 ## Running
 
 ```

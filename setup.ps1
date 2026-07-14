@@ -196,6 +196,17 @@ if ($writeClipFolder) {
 
     if (-not (Test-Path $clipFolder)) {
         Write-Warn "That folder doesn't exist yet - copy your dashcam clips there before running extract_gps.py."
+    } else {
+        # Non-recursive, case-insensitive .MP4 count - mirrors exactly what
+        # extract_gps.py itself will scan, so a typo'd path or an empty/
+        # wrong folder shows up here instead of failing later.
+        $clipCount = (Get-ChildItem -Path $clipFolder -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Extension -ieq ".mp4" }).Count
+        if ($clipCount -gt 0) {
+            Write-Success "Found $clipCount .MP4 file(s) in that folder."
+        } else {
+            Write-Warn "No .MP4 files found directly in that folder. extract_gps.py doesn't look in subfolders - check the path and that your clips are copied there."
+        }
     }
 }
 

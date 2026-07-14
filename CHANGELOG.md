@@ -9,6 +9,16 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- README now documents that `clip_folder` can point at a subfolder inside
+  the clone, an absolute path, or a network share/mapped drive, and that
+  scanning is non-recursive with no date-range or include/exclude
+  filtering - organize the clips you want into one folder first.
+- `setup.ps1`/`setup.sh` now count and report the `.MP4` files found at
+  the `clip_folder` path you enter, instead of only checking that the
+  folder exists - a wrong or empty path shows up immediately instead of
+  failing later in `extract_gps.py`.
+
 ## [0.1.0] - 2026-07-14
 
 ### Added
